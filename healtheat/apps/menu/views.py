@@ -1,8 +1,12 @@
+import json
+from logging import getLogger
 from rest_framework import generics, status
 from rest_framework.response import Response
 
 from healtheat.apps.menu.models import DailyMenuModel
 from healtheat.apps.menu.serializers import DailyMenuSerializer
+
+dataLogger = getLogger('data')
 
 
 class DailyMenuGenericAPIView(generics.GenericAPIView):
@@ -21,6 +25,7 @@ class DailyMenuList(DailyMenuGenericAPIView):
         response = Response(status=status.HTTP_201_CREATED)
         if serializer.is_valid():
             serializer.save()
+            dataLogger.info('[POST]: ' + json.dumps(serializer.data, ensure_ascii=False))
         else:
             response.data = {'errors': serializer.errors}
             response.status_code = status.HTTP_400_BAD_REQUEST
@@ -39,6 +44,7 @@ class DailyMenuDetail(DailyMenuGenericAPIView):
         response = Response()
         if serializer.is_valid():
             serializer.save()
+            dataLogger.info('[PATCH]: ' + json.dumps(serializer.data, ensure_ascii=False))
         else:
             response.data = {'errors': serializer.errors}
             response.status_code = status.HTTP_400_BAD_REQUEST
@@ -47,4 +53,6 @@ class DailyMenuDetail(DailyMenuGenericAPIView):
     def delete(self, request, day):
         daily_menu = self.get_object()
         daily_menu.delete()
+        serializer = self.get_serializer(daily_menu)
+        dataLogger.info('[DELETE]: ' + json.dumps(serializer.data, ensure_ascii=False))
         return Response(status=status.HTTP_204_NO_CONTENT)
